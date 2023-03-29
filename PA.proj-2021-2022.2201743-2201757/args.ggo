@@ -1,0 +1,24 @@
+package "checkFile"
+version "1.0"
+purpose "Verificar ficheiros"
+description ""
+
+#----------------------------
+# independent options
+#----------------------------
+# Mandatory option
+
+# Optional
+#
+defgroup "params"
+
+option "no-help" h "help" optional
+
+groupoption  "file" f "Analisa o ficheiro, indicando se a extensão do nome do ficheiro corresponde ou não ao respetivo conteúdo." string typestr="fich" group="params" optional multiple
+groupoption  "batch" b "O ficheiro fich_with_filenames, contém, em cada linha, o caminho/nome de um ficheiro cujo tipo se pretende validar com a extensão do respetivo nome." string typestr="fich_with_filenames" group="params" optional
+groupoption "dir" d "Analisa cada um dos ficheiros existentes no diretório <directory>, averiguando a validade da respetiva extensão." string typestr="directory" group="params" optional
+
+
+#
+# NOTE: support for this file needs to be enabled in 'makefile
+#

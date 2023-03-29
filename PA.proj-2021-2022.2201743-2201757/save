@@ -1,0 +1,132 @@
+/**
+ * @file main.c
+ * @brief Description
+ * @date 2018-1-1
+ * @author name of author
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+#include "debug.h"
+#include "memory.h"
+#include "args.h"
+
+char *filename = NULL;
+char *fichfilename = NULL;
+char *directory = NULL;
+
+void extensionfile (void);
+int checkIfFileExists(void);
+
+int main(int argc, char *argv[]) {
+    struct gengetopt_args_info args;
+	
+	if(cmdline_parser(argc, argv, &args) != 0){
+		return 1;
+	}
+	
+	
+	 for (int i = 0; i < args.file_given; ++i){
+		filename = args.file_arg[i];
+		if(checkIfFileExists()){
+			extensionfile();
+		}
+		else
+		{
+			ERROR(0, "cannot open file <fich> ");
+		}
+		
+	}
+	
+	
+	//filename = args.file_arg; //name of the file
+	fichfilename = args.batch_arg;
+	directory = args.dir_arg;
+	
+	
+	
+	
+    cmdline_parser_free(&args);
+
+    return 0;
+}
+
+void extensionfile (void){
+	int link[2];
+	char foo[4096]; //variable to save the file output
+	
+	pid_t pid;
+	
+	if (pipe(link)==-1){
+		ERROR(1, "Erro na execução do pipe");
+	}
+	
+	switch (pid = fork()) { // make a new process
+    case -1:
+        ERROR(2, "Erro na execução do fork()");
+    case 0:
+        dup2(link[1], STDOUT_FILENO);
+        close(link[0]);
+        close(link[1]);
+		execlp("file", "file", filename, NULL);
+        ERROR(3, "erro no execlp");
+    default:
+        close(link[1]);
+        int nbytes = read(link[0], foo, sizeof(foo));
+		
+		char copy[4096]; 
+		char copy2[4096]; 
+		
+		strcpy(copy, foo); //to copy the output of "file", to not loose
+		strcpy(copy2, filename); //to copy the "filename", to not loose
+		
+		char *type = strtok(copy, " "); 
+		type = strtok(NULL, " "); //to separate the file type from the rest of the string
+			
+		char *extension = strtok(copy2, ".");
+		extension = strtok(NULL, ".");//to separate the extension from the rest of the string
+		
+		size_t len = strlen(type); //length of type
+		char *lower = calloc(len+1, sizeof(char)); //to help put the string type on lower case
+
+		for (size_t i = 0; i < len; ++i) {//put string type on lower case
+			lower[i] = tolower((unsigned char)type[i]);
+		}
+        
+        if(strcmp(extension,"pdf")==0 || strcmp(extension,"gif")==0 || strcmp(extension, "jpg")==0 || strcmp(extension, "png")==0 || strcmp(extension, "mp4")==0 || strcmp(extension, "zip")==0 || strcmp(extension, "html")==0){
+			if(strcmp(type,"PDF")==0 || strcmp(type,"GIF")==0 || strcmp(type, "JPG")==0 || strcmp(type, "PNG")==0 || strcmp(type, "MP4")==0 || strcmp(type, "ZIP")==0 || strcmp(type, "HTML")==0){
+				if(strcmp(lower, extension) == 0){
+					printf("[OK] '%s': extension '%s' matches file type '%s'.\n", filename, extension, lower);
+				}else{
+					printf("[MISMATCH] '%s': extension is '%s', file type is '%s'.\n", filename, extension, lower);
+				}
+			}else{
+				printf("[MISMATCH] '%s': extension is '%s', file type is '%s'.\n", filename, extension, lower);
+			}
+		
+		}else{
+			printf("[INFO] '%s': type '%.*s' is not supported by checkfile.\n", filename,nbytes, foo); //pensar melhor no que pôr aqui
+		}
+        free(lower);
+        wait(NULL);
+        break;
+    }
+}
+
+int checkIfFileExists()
+{
+    FILE *file;
+    if (file = fopen(filename, "r"))
+    {
+        fclose(file);
+        return 1;
+    }
+
+    return 0;
+}
