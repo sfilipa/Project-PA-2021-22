@@ -23,7 +23,7 @@ The checkFile application analyzes the file by executing the <strong><i>file</i>
 <h2>Usage</h2>
 To use the checkFile application, run the following command:
 <ul>
-<li>checkFile <filename></li>
+<li>checkFile '<'filename'>'</li>
 </ul>
 Replace <strong><i><filename></i></strong> with the name of the file you want to verify.
 <p>&#8702; <a href="https://github.com/sfilipa/Project-PA-2021-22/blob/main/EI_PA.1S2021-22.proj_checkFile---v2.pdf">Project Statement</a></p>
